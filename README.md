@@ -20,8 +20,6 @@ Berikut preview dari pengerjaan tersebut.
 
 ![image](https://github.com/reza7angkasa/aplikasi_THT_web_programmer/assets/72240159/5d142be5-f603-47ba-9dac-e15e07245c5a)
 
-![image](https://github.com/reza7angkasa/aplikasi_THT_web_programmer/assets/72240159/95a6e0df-ad75-4ff7-8539-7bc51ccec381)
-
 
 
 
