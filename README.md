@@ -2,9 +2,9 @@
 Hasil perancangan aplikasi THT untuk test web programmer.
 Berikut preview dari pengerjaan tersebut.
 
-![image](https://github.com/reza7angkasa/aplikasi_THT_web_programmer/assets/72240159/ca93a6b0-7568-48d1-82dd-a45637d22972)
-
 ![image](https://github.com/reza7angkasa/aplikasi_THT_web_programmer/assets/72240159/771ff808-1541-40af-9595-6cb944ecfd01)
+
+![image](https://github.com/reza7angkasa/aplikasi_THT_web_programmer/assets/72240159/ca93a6b0-7568-48d1-82dd-a45637d22972)
 
 ![image](https://github.com/reza7angkasa/aplikasi_THT_web_programmer/assets/72240159/929664cc-d887-4f52-96d4-b9632430fa07)
 
