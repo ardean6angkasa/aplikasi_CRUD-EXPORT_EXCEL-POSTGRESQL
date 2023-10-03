@@ -4,7 +4,8 @@ namespace App\Controllers;
 use App\Models\UserModel;
 use App\Models\ProductModel;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xls;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 class Home extends BaseController
 {
     public function index()
@@ -275,7 +276,7 @@ class Home extends BaseController
         $fetch = session()->get('jenis_produk');
     }      
     $products = $productModel->getData($fetch)->findAll();        
-    $spreadsheet = new Spreadsheet();            
+    $spreadsheet = new Spreadsheet();           
     $sheet = $spreadsheet->getActiveSheet();
         
     $titleStyle = [
@@ -319,13 +320,21 @@ class Home extends BaseController
         $sheet->setCellValue('F' . $counter, number_format($product['stok_produk'], 0, ',', ','));
     }
         
-    $randomFileName = 'getrandomnames_' . uniqid() . '.xls';
-    $filePath = FCPATH . 'exports/' . $randomFileName;
-
-    $writer = new Xls($spreadsheet);        
-    $writer->save($filePath);
-                
-    return redirect()->to(site_url('/product'))->with('success', 'Data berhasil diexport, nama file: '. $randomFileName);
+    $tempFilePath = WRITEPATH . 'excel_temp_' . session()->get('candidate_name'). '.xlsx';
+    $writer = new Xlsx($spreadsheet);
+    $writer->save($tempFilePath);  
+    $response = service('response');
+    $response->setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    $response->setHeader('Content-Disposition', 'attachment;filename="excel_temp_' . session()->get('candidate_name') . '.xlsx"');
+    $response->setHeader('Cache-Control', 'max-age=0');
+    $response->setHeader('Cache-Control', 'must-revalidate');
+    $response->setHeader('Cache-Control', 'no-store');
+    $response->setHeader('Cache-Control', 'no-cache');
+    $response->setHeader('Content-Length', filesize($tempFilePath));    
+    readfile($tempFilePath);    
+    unlink($tempFilePath);
+    
+    return $response;
 }
 
 public function user_profile()
