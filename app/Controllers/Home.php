@@ -22,17 +22,17 @@ class Home extends BaseController
         $password = $this->request->getPost('password');
 
         if (!$email || !$password) {
-            return redirect()->to('/')->with('error', 'Email dan password wajib diise.');
+            return redirect()->to('/')->with('error', 'Email dan password wajib diisi.');
         }
        
         $user = $userModel->where('email', $email)->first();
        
         if (!$user) {
-            return redirect()->to('/')->with('error', 'Invalid email.');
+            return redirect()->to('/')->with('error', 'Wrong email.');
         }
 
         if (!password_verify($password, $user['password'])) {
-            return redirect()->to('/')->with('error', 'Invalid password.');
+            return redirect()->to('/')->with('error', 'Wrong password.');
         }
        
         session()->set('user_id', $user['id']);
