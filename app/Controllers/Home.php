@@ -333,8 +333,6 @@ class Home extends BaseController
     $response->setHeader('Content-Length', filesize($tempFilePath));    
     readfile($tempFilePath);    
     unlink($tempFilePath);
-    
-    return $response;
 }
 
 public function user_profile()
