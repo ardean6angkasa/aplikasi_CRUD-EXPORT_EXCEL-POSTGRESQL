@@ -49,9 +49,9 @@
             <img src="../img/lock-keyhole-svgrepo-com.png" style="width: 16px; height: 16px;" alt="Icon-lock">
         </span>
     </div>
-    <input type="password" class="form-control" placeholder="Masukkan password anda" name="password">
+    <input type="password" class="form-control" placeholder="Masukkan password anda" name="password"  id="password">
     <div class="input-group-append">
-        <span class="input-group-text">
+        <span class="input-group-text" id="togglePassword">
         <img src="../img/eye-svgrepo-com copy.png" style="width: 16px; height: 16px;" alt="Icon-eye">
         </span>
     </div>
@@ -78,6 +78,16 @@
             errorAlert.style.display = 'none';
         }
     }, 6000);
+    const passwordInput = document.getElementById('password');
+    const togglePassword = document.getElementById('togglePassword');
+
+    togglePassword.addEventListener('click', function () {
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+        } else {
+            passwordInput.type = 'password';
+        }
+    });
 </script>   
 </body>
 </html>

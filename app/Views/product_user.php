@@ -75,7 +75,7 @@
                     </span>
                 </div>   
             <select class="form-select category-product" name="kategori_produk" id="categorySelect">
-                <option value="" selected>Pilih kategori</option>
+                <option value="">Pilih kategori</option>
                 <option value="Alat Olahraga" <?= (session()->get('jenis_produk') == 'Alat Olahraga') ? 'selected' : ''; ?>>Alat Olahraga</option>
                 <option value="Alat Musik" <?= (session()->get('jenis_produk') == 'Alat Musik') ? 'selected' : ''; ?>>Alat Musik</option>                
             </select> 
@@ -198,7 +198,7 @@
                                 <div>
                                     <label for="kategori">Kategori</label>
                                     <select class="form-select kategori" name="kategori">
-                                    <option value="" disabled selected>Pilih kategori</option>            
+                                    <option value="" disabled>Pilih kategori</option>            
                                         <option value="Alat Olahraga" <?= ($product['kategori_produk'] == 'Alat Olahraga') ? 'selected' : ''; ?>>Alat Olahraga</option>
                                         <option value="Alat Musik" <?= ($product['kategori_produk'] == 'Alat Musik') ? 'selected' : ''; ?>>Alat Musik</option>
                                     </select>                              
