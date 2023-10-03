@@ -320,12 +320,12 @@ class Home extends BaseController
         $sheet->setCellValue('F' . $counter, number_format($product['stok_produk'], 0, ',', ','));
     }
         
-    $tempFilePath = WRITEPATH . 'excel_temp_' . session()->get('candidate_name'). '.xlsx';
+    $tempFilePath = WRITEPATH . 'excel_temp.xlsx';
     $writer = new Xlsx($spreadsheet);
     $writer->save($tempFilePath);  
     $response = service('response');
     $response->setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    $response->setHeader('Content-Disposition', 'attachment;filename="excel_temp_' . session()->get('candidate_name') . '.xlsx"');
+    $response->setHeader('Content-Disposition', 'attachment;filename="exported_data.xlsx"');
     $response->setHeader('Cache-Control', 'max-age=0');
     $response->setHeader('Cache-Control', 'must-revalidate');
     $response->setHeader('Cache-Control', 'no-store');
