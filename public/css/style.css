@@ -201,6 +201,18 @@
 a {
   text-decoration: none !important;
 }
+.img-circle-default {
+  margin-left: 280px;
+  margin-top: 40px;
+  width: 160px;
+  height: 160px;
+}
+
+.img-circle-default img {
+  width: 100%;
+  height: auto;
+}
+
 .img-circle-crop {
   margin-left: 280px;
   margin-top: 40px;

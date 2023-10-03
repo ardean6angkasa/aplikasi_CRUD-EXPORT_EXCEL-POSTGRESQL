@@ -46,31 +46,48 @@
         </a>
     </div>    
 
-   
-    <div class="d-flex align-items-center">
-    <div class="img-circle-crop mr-2">
-        <img src="../upload/<?= session()->get("user_image"); ?>" alt="Profile Picture">
+        <div class="d-flex align-items-center">
+            <?php if (empty(session()->get("user_image"))) : ?>         
+                <div class="img-circle-default mr-2">
+                    <img src="../upload/Frame 98700.png" alt="Profile Picture">
+                </div>
+            <?php else : ?>    
+                <div class="img-circle-crop mr-2">
+                    <img src="../upload/<?= session()->get("user_image"); ?>" alt="Profile Picture">
+                </div>
+            <?php endif; ?>
+    
+        <button type="button" class="btn edit-button" data-toggle="modal" data-target="#editProfileModal">
+            <div class="img-circle-pen-crop">        
+                <img src="../img/pen-svgrepo-com copy.png" alt="Pencil">      
+            </div>
+        </button>
     </div>
-
-    <button type="button" class="btn edit-button" data-toggle="modal" data-target="#editProfileModal">
-    <div class="img-circle-pen-crop">        
-            <img src="../img/pen-svgrepo-com copy.png" alt="Pencil">      
-    </div>
-    </button>
-</div>
 
     
 
     <div class="row mt-4" style="margin-left: 270px;">
         <div class="col-md-8">
-        <h4><b><?= session()->get("candidate_name"); ?></b></h4>
+        <?php if (empty(session()->get("candidate_name"))) : ?>
+            <h4><b>Default</b></h4>
+        <?php else : ?>  
+            <h4><b><?= session()->get("candidate_name"); ?></b></h4>
+        <?php endif; ?>
             <p>Nama Kandidat</p>   
-            <p class="bordered-text">@ <?= session()->get("candidate_name"); ?></p>
+            <?php if (empty(session()->get("candidate_name"))) : ?>   
+                <p class="bordered-text">@ Default</p>
+            <?php else : ?>  
+                <p class="bordered-text">@ <?= session()->get("candidate_name"); ?></p>
+            <?php endif; ?>
         </div>
 
         <div class="col-md-3" style="margin-top: 36px !important;">
             <p>Posisi Kandidat</p>
-            <p class="bordered-text">&lt;/&gt; <?= session()->get("candidate_position"); ?></p>
+            <?php if (empty(session()->get("candidate_position"))) : ?>   
+                <p class="bordered-text">&lt;/&gt; Default</p>
+            <?php else : ?>  
+                <p class="bordered-text">&lt;/&gt; <?= session()->get("candidate_position"); ?></p>
+            <?php endif; ?>           
         </div>
     </div>
 
@@ -115,7 +132,11 @@
                                     <div>
                                         <label for="image" style="margin-bottom:10px;">Upload Image</label>      
                                             <div id="dropArea" class="drop-area">
+                                            <?php if (empty(session()->get("user_image"))) : ?>   
+                                                <img id="selectedImage" src="/upload/Frame 98700.png" alt="gallery" style="width: 88px; height: 88px;">
+                                                <?php else : ?>         
                                             <img id="selectedImage" src="/upload/<?= session()->get("user_image"); ?>" alt="gallery" style="width: 88px; height: 88px;">            
+                                            <?php endif; ?>
                                             <p style="color: #3366ff;" id="dragText">Upload gambar disini</p>                                            
                                             <input type="file" id="uploadFile" accept="image/*" multiple name="image" multiple style="display: none;">                                                      
                                         </div>          
