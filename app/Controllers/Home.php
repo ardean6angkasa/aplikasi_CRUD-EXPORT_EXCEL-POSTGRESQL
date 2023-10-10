@@ -1,11 +1,12 @@
 <?php
 
 namespace App\Controllers;
+
 use App\Models\UserModel;
 use App\Models\ProductModel;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use PhpOffice\PhpSpreadsheet\IOFactory;
+
 class Home extends BaseController
 {
     public function index()
@@ -17,17 +18,17 @@ class Home extends BaseController
     }
 
     public function login()
-    {  
-        $userModel = new UserModel();        
+    {
+        $userModel = new UserModel();
         $email = $this->request->getPost('email');
         $password = $this->request->getPost('password');
 
         if (!$email || !$password) {
             return redirect()->to('/')->with('error', 'Email dan password wajib diisi.');
         }
-       
+
         $user = $userModel->where('email', $email)->first();
-       
+
         if (!$user) {
             return redirect()->to('/')->with('error', 'Wrong email.');
         }
@@ -35,7 +36,7 @@ class Home extends BaseController
         if (!password_verify($password, $user['password'])) {
             return redirect()->to('/')->with('error', 'Wrong password.');
         }
-       
+
         session()->set('user_id', $user['id']);
         session()->set('user_email', $user['email']);
         session()->set('user_image', $user['image']);
@@ -53,27 +54,29 @@ class Home extends BaseController
     }
 
     public function product()
-    {       
+    {
         if (!session()->get('user_email')) {
             return redirect()->to('/');
         }
-        $productModel = new ProductModel();            
-        if (session()->has('kata_pencarian')) {            
+        $productModel = new ProductModel();
+        if (session()->has('kata_pencarian')) {
             $fetch = session()->get('kata_pencarian');
-        } else if (session()->has('jenis_produk')) {           
+        } else if (session()->has('jenis_produk')) {
             $fetch = session()->get('jenis_produk');
         } else {
-            $fetch = session()->get('kata_pencarian');
-        }         
+            $fetch = "";
+        }
         $productModel->getData($fetch);
+        $currentPage = $this->request->getVar('page_products') ? $this->request->getVar('page_products') : 1;
         $data = [
-            'products'  =>   $productModel->getData()->getResult(),
-            'products'=>  $productModel->paginate(6, 'products'),
-            'pager' => $productModel->pager,               
-            'totalProducts' => $productModel->countTotalProducts(),       
+            'products' => $productModel->getData()->getResult(),
+            'products' => $productModel->paginate(6, 'products'),
+            'pager' => $productModel->pager,
+            'currentPage' => $currentPage,
+            'totalProducts' => $productModel->countTotalProducts($fetch),
         ];
-		echo view('/product_user', $data);
-    }   
+        echo view('/product_user', $data);
+    }
 
     public function add_product()
     {
@@ -84,7 +87,7 @@ class Home extends BaseController
     }
 
     public function insert_data_product()
-    {    
+    {
         $validation = \Config\Services::validation();
         $validationRules = [
             'kategori' => 'required',
@@ -94,7 +97,7 @@ class Home extends BaseController
             'stok-barang' => 'required|numeric',
             'image' => 'uploaded[image]|mime_in[image,image/jpg,image/jpeg,image/png]|max_size[image,100]',
         ];
-               
+
         $validation->setRules($validationRules, [
             'kategori' => [
                 'required' => 'Kategori wajib diisi.',
@@ -121,51 +124,47 @@ class Home extends BaseController
                 'max_size' => 'Ukuran gambar tidak boleh lebih dari 100 KB.',
             ],
         ]);
-        
-        if (!$validation->withRequest($this->request)->run()) {            
+
+        if (!$validation->withRequest($this->request)->run()) {
             return view('/product_user_add', ['validation' => $validation]);
         } else {
-        $hargaBeli = $this->request->getPost('harga-beli');
-        $hargaJual = $hargaBeli * 1.3;
-        $productModel = new ProductModel();        
-        $imageFile = $this->request->getFile('image');
-        $imageName = $imageFile->getRandomName();   
-        $uploadPath = ROOTPATH.'/public/upload';        
-        $imageFile->move($uploadPath, $imageName);
-        $data = [
-            'kategori_produk' => $this->request->getPost('kategori'),
-            'nama_produk' => $this->request->getPost('nama-barang'),
-            'harga_beli' => $hargaBeli,
-            'harga_jual' => $hargaJual,
-            'stok_produk' => $this->request->getPost('stok-barang'),
-            'image' => $imageName,
-        ];
-        
-        if ($productModel->insertProduct($data)) {
-            return redirect()->to(base_url('/add_product'))->with('success', 'Data berhasil diinput.');           
-        } else {
-            return redirect()->to(base_url('/add_product'))->with('error', 'Data gagal diinput.');
+            $hargaBeli = $this->request->getPost('harga-beli');
+            $hargaJual = $hargaBeli * 1.3;
+            $productModel = new ProductModel();
+            $imageFile = $this->request->getFile('image');
+            $imageName = $imageFile->getRandomName();
+            $uploadPath = ROOTPATH . '/public/upload';
+            $imageFile->move($uploadPath, $imageName);
+            $data = [
+                'kategori_produk' => $this->request->getPost('kategori'),
+                'nama_produk' => $this->request->getPost('nama-barang'),
+                'harga_beli' => $hargaBeli,
+                'harga_jual' => $hargaJual,
+                'stok_produk' => $this->request->getPost('stok-barang'),
+                'image' => $imageName,
+            ];
+
+            if ($productModel->insert($data)) {
+                return redirect()->to(base_url('/add_product'))->with('success', 'Data berhasil diinput.');
+            } else {
+                return redirect()->to(base_url('/add_product'))->with('error', 'Data gagal diinput.');
+            }
         }
-    }
     }
 
     public function update_data_product()
-    {    
+    {
         $validation = \Config\Services::validation();
         $productId = $this->request->getPost('id');
         $validationRules = [
-            'kategori' => 'required',
             'nama-barang' => 'required|is_unique[product.nama_produk,id,' . $productId . ']',
             'harga-beli' => 'required|numeric',
             'harga-jual' => 'required|numeric',
             'stok-barang' => 'required|numeric',
-            'image' => 'mime_in[image,image/jpg,image/jpeg,image/png]|max_size[image,100]',  
+            'image' => 'mime_in[image,image/jpg,image/jpeg,image/png]|max_size[image,100]',
         ];
-               
+
         $validation->setRules($validationRules, [
-            'kategori' => [
-                'required' => 'Kategori wajib diisi.',
-            ],
             'nama-barang' => [
                 'is_unique' => 'Nama barang sudah ada di database.',
                 'required' => 'Nama barang wajib diisi.',
@@ -188,46 +187,46 @@ class Home extends BaseController
                 'max_size' => 'Ukuran gambar tidak boleh lebih dari 100 KB.',
             ],
         ]);
-        
+
         if (!$validation->withRequest($this->request)->run()) {
             $session = \Config\Services::session();
             $session->setFlashdata('validationErrors', $validation->getErrors());
-            return redirect()->to(base_url('/product'))->withInput();
+            return redirect()->to(base_url('/product'));
         } else {
-        $hargaBeli = $this->request->getPost('harga-beli');
-        $hargaJual = $hargaBeli * 1.3;
-        $productModel = new ProductModel();               
-        $data = [
-            'kategori_produk' => $this->request->getPost('kategori'),
-            'nama_produk' => $this->request->getPost('nama-barang'),
-            'harga_beli' => $hargaBeli,
-            'harga_jual' => $hargaJual,
-            'stok_produk' => $this->request->getPost('stok-barang'),           
-        ];
-        $existingProduct = $productModel->find($productId);             
-        $imageFile = $this->request->getFile('image');
-        if ($imageFile->isValid()) {            
-            if ($existingProduct['image'] !== null) {
-                $oldImagePath = ROOTPATH . '/public/upload/' . $existingProduct['image'];
-                if (file_exists($oldImagePath)) {
-                    unlink($oldImagePath);
+            $hargaBeli = $this->request->getPost('harga-beli');
+            $hargaJual = $hargaBeli * 1.3;
+            $productModel = new ProductModel();
+            $data = [
+                'kategori_produk' => $this->request->getPost('kategori'),
+                'nama_produk' => $this->request->getPost('nama-barang'),
+                'harga_beli' => $hargaBeli,
+                'harga_jual' => $hargaJual,
+                'stok_produk' => $this->request->getPost('stok-barang'),
+            ];
+            $existingProduct = $productModel->find($productId);
+            $imageFile = $this->request->getFile('image');
+            if ($imageFile->isValid()) {
+                if ($existingProduct['image'] !== null) {
+                    $oldImagePath = ROOTPATH . '/public/upload/' . $existingProduct['image'];
+                    if (file_exists($oldImagePath)) {
+                        unlink($oldImagePath);
+                    }
                 }
-            }
-        
-            $imageName = $imageFile->getRandomName();
-            $uploadPath = ROOTPATH . '/public/upload';
-            $imageFile->move($uploadPath, $imageName);
-            $data['image'] = $imageName;
-        }                   
-        
-        $updated = $productModel->update($productId, $data);
 
-        if ($updated) {
-            return redirect()->to(base_url('/product'))->with('success', 'Data berhasil diupdate.');
-        } else {
-            return redirect()->to(base_url('/product'))->with('error', 'Data gagal diupdate.');
+                $imageName = $imageFile->getRandomName();
+                $uploadPath = ROOTPATH . '/public/upload';
+                $imageFile->move($uploadPath, $imageName);
+                $data['image'] = $imageName;
+            }
+
+            $updated = $productModel->update($productId, $data);
+
+            if ($updated) {
+                return redirect()->to(base_url('/product'))->with('success', 'Data berhasil diupdate.');
+            } else {
+                return redirect()->to(base_url('/product'))->with('error', 'Data gagal diupdate.');
+            }
         }
-    }
     }
 
     public function delete_data_product()
@@ -236,9 +235,9 @@ class Home extends BaseController
         $productModel = new ProductModel();
         $product = $productModel->find($productId);
 
-        if ($product) {    
-            $productModel->delete($productId);        
-            $uploadPath = ROOTPATH.'/public/upload';
+        if ($product) {
+            $productModel->delete($productId);
+            $uploadPath = ROOTPATH . '/public/upload';
             $imagePath = $uploadPath . '/' . $product['image'];
 
             if (file_exists($imagePath)) {
@@ -253,147 +252,146 @@ class Home extends BaseController
 
     public function search()
     {
-        $check=$this->request->getVar('keyword');
-        session()->set('kata_pencarian',$check);
+        $check = $this->request->getVar('keyword');
+        session()->set('kata_pencarian', $check);
         session()->remove('jenis_produk');
         return redirect()->to(base_url('/product'));
     }
 
     public function search_category()
     {
-        $check=$this->request->getVar('kategori_produk');
-        session()->set('jenis_produk',$check);
+        $check = $this->request->getVar('kategori_produk');
+        session()->set('jenis_produk', $check);
         session()->remove('kata_pencarian');
         return redirect()->to(base_url('/product'));
     }
 
     public function exportExcel()
-{
-    $productModel = new ProductModel(); 
-    if (session()->has('kata_pencarian')) {
-        $fetch = session()->get('kata_pencarian');
-    } else if (session()->has('jenis_produk')) {
-        $fetch = session()->get('jenis_produk');
-    }      
-    $products = $productModel->getData($fetch)->findAll();        
-    $spreadsheet = new Spreadsheet();           
-    $sheet = $spreadsheet->getActiveSheet();
-        
-    $titleStyle = [
-        'font' => [
-            'bold' => true,
-            'color' => ['rgb' => 'FFFFFF'],
-        ],
-        'fill' => [
-            'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-            'startColor' => ['rgb' => '8B0000'],
-        ],
-    ];
-    $titleTable = [
-        'font' => [
-            'bold' => true,
-            'color' => ['rgb' => '000000'],
-        ],
-        'alignment' => [
-            'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
-            'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
-        ],
-    ];
-    $sheet->mergeCells('A1:F1');
-    $sheet->setCellValue('A1', 'Data Produk')->getStyle('A1')->applyFromArray($titleTable);   
-    
-    $sheet->setCellValue('A2', 'No')->getStyle('A2')->applyFromArray($titleStyle);
-    $sheet->setCellValue('B2', 'Nama Produk')->getStyle('B2')->applyFromArray($titleStyle);
-    $sheet->setCellValue('C2', 'Kategori Produk')->getStyle('C2')->applyFromArray($titleStyle);
-    $sheet->setCellValue('D2', 'Harga Barang')->getStyle('D2')->applyFromArray($titleStyle);
-    $sheet->setCellValue('E2', 'Harga Jual')->getStyle('E2')->applyFromArray($titleStyle);
-    $sheet->setCellValue('F2', 'Stok')->getStyle('F2')->applyFromArray($titleStyle);
-    
-    $counter = 2;
-    foreach ($products as $product) {
-        $counter++;
-        $sheet->setCellValue('A' . $counter, $counter - 2);
-        $sheet->setCellValue('B' . $counter, $product['nama_produk']);
-        $sheet->setCellValue('C' . $counter, $product['kategori_produk']);
-        $sheet->setCellValue('D' . $counter, number_format($product['harga_beli'], 0, ',', ','));
-        $sheet->setCellValue('E' . $counter, number_format($product['harga_jual'], 0, ',', ','));
-        $sheet->setCellValue('F' . $counter, number_format($product['stok_produk'], 0, ',', ','));
-    }
-        
-    $tempFilePath = WRITEPATH . 'excel_temp.xlsx';
-    $writer = new Xlsx($spreadsheet);
-    $writer->save($tempFilePath);  
-    $response = service('response');
-    $response->setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    $response->setHeader('Content-Disposition', 'attachment;filename="exported_data.xlsx"');
-    $response->setHeader('Cache-Control', 'max-age=0');
-    $response->setHeader('Cache-Control', 'must-revalidate');
-    $response->setHeader('Cache-Control', 'no-store');
-    $response->setHeader('Cache-Control', 'no-cache');
-    $response->setHeader('Content-Length', filesize($tempFilePath));    
-    readfile($tempFilePath);    
-    unlink($tempFilePath);
-}
+    {
+        $productModel = new ProductModel();
 
-public function user_profile()
-{
-    if (!session()->get('user_email')) {
-        return redirect()->to('/');
-    }
-    return view('profile_page');
-}
+        if (!empty(session()->get('kata_pencarian'))) {
+            $fetch = session()->get('kata_pencarian');
+            $products = $productModel->getData($fetch)->findAll();
+        } else if (!empty(session()->has('jenis_produk'))) {
+            $fetch = session()->get('jenis_produk');
+            $products = $productModel->getData($fetch)->findAll();
+        } else {
+            $products = $productModel->findAll();
+        }
 
-public function update_data_candidate()
-    {    
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $titleStyle = [
+            'font' => [
+                'bold' => true,
+                'color' => ['rgb' => 'FFFFFF'],
+            ],
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => ['rgb' => '8B0000'],
+            ],
+        ];
+        $titleTable = [
+            'font' => [
+                'bold' => true,
+                'color' => ['rgb' => '000000'],
+            ],
+            'alignment' => [
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+            ],
+        ];
+        $sheet->mergeCells('A1:F1');
+        $sheet->setCellValue('A1', 'Data Produk')->getStyle('A1')->applyFromArray($titleTable);
+
+        $sheet->setCellValue('A2', 'No')->getStyle('A2')->applyFromArray($titleStyle);
+        $sheet->setCellValue('B2', 'Nama Produk')->getStyle('B2')->applyFromArray($titleStyle);
+        $sheet->setCellValue('C2', 'Kategori Produk')->getStyle('C2')->applyFromArray($titleStyle);
+        $sheet->setCellValue('D2', 'Harga Barang')->getStyle('D2')->applyFromArray($titleStyle);
+        $sheet->setCellValue('E2', 'Harga Jual')->getStyle('E2')->applyFromArray($titleStyle);
+        $sheet->setCellValue('F2', 'Stok')->getStyle('F2')->applyFromArray($titleStyle);
+
+        $counter = 2;
+        foreach ($products as $product) {
+            $counter++;
+            $sheet->setCellValue('A' . $counter, $counter - 2);
+            $sheet->setCellValue('B' . $counter, $product['nama_produk']);
+            $sheet->setCellValue('C' . $counter, $product['kategori_produk']);
+            $sheet->setCellValue('D' . $counter, number_format($product['harga_beli'], 0, ',', ','));
+            $sheet->setCellValue('E' . $counter, number_format($product['harga_jual'], 0, ',', ','));
+            $sheet->setCellValue('F' . $counter, number_format($product['stok_produk'], 0, ',', ','));
+        }
+
+        $tempFilePath = WRITEPATH . 'user_excel_data.xlsx';
+        $writer = new Xlsx($spreadsheet);
+        $writer->save($tempFilePath);
+        $response = service('response');
+        $response->setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        $response->setHeader('Content-Disposition', 'attachment;filename="exported_data.xlsx"');
+        $response->setHeader('Cache-Control', 'max-age=0');
+        $response->setHeader('Cache-Control', 'must-revalidate');
+        $response->setHeader('Cache-Control', 'no-store');
+        $response->setHeader('Cache-Control', 'no-cache');
+        $response->setHeader('Content-Length', filesize($tempFilePath));
+        readfile($tempFilePath);
+        unlink($tempFilePath);
+    }
+
+    public function user_profile()
+    {
+        if (!session()->get('user_email')) {
+            return redirect()->to('/');
+        }
+        return view('profile_page');
+    }
+
+    public function update_data_candidate()
+    {
         $validation = \Config\Services::validation();
         $userId = $this->request->getPost('id');
-        $validationRules = [          
+        $validationRules = [
             'nama-kandidat' => 'required|is_unique[user_login.candidate_name,id,' . $userId . ']',
             'posisi-kandidat' => 'required',
-            'image' => 'mime_in[image,image/jpg,image/jpeg,image/png]|max_size[image,100]',  
-        ];                   
-        $validation->setRules($validationRules, [
-            'nama-kandidat',
-            'posisi-kandida',
-            'image',           
-        ]);
-        if (!$validation->withRequest($this->request)->run()) {
-            $session = \Config\Services::session();
-            $session->setFlashdata('validationErrors', $validation->getErrors());
-            return redirect()->to(base_url('/user_profile'))->withInput();
-        } else {        
-        $userModel = new UserModel();               
-        $data = [
-            'candidate_name' => $this->request->getPost('nama-kandidat'),
-            'candidate_position' => $this->request->getPost('posisi-kandidat'),           
+            'image' => 'mime_in[image,image/jpg,image/jpeg,image/png]|max_size[image,100]',
         ];
-        $existingUser = $userModel->find($userId);             
-        $imageFile = $this->request->getFile('image');
-        if ($imageFile->isValid()) {            
-            if ($existingUser['image'] !== null) {
-                $oldImagePath = ROOTPATH . '/public/upload/' . $existingUser['image'];
-                if (file_exists($oldImagePath)) {
-                    unlink($oldImagePath);
-                }
-            }
-        
-            $imageName = $imageFile->getRandomName();
-            $uploadPath = ROOTPATH . '/public/upload';
-            $imageFile->move($uploadPath, $imageName);
-            $data['image'] = $imageName;
-        }                   
-        
-        $updated = $userModel->update($userId, $data);
-
-        if ($updated) {
-            session()->set('user_image', $imageName);
-            session()->set('candidate_position', $this->request->getPost('nama-kandidat'));
-            session()->set('candidate_name', $this->request->getPost('posisi-kandidat'));
-            return redirect()->to(base_url('/user_profile'))->with('success', 'Data berhasil diupdate.');
+        $validation->setRules($validationRules);
+        if (!$validation->withRequest($this->request)->run()) {
+            return view('/profile_page', ['validation' => $validation]);
         } else {
-            return redirect()->to(base_url('/user_profile'))->with('error', 'Data gagal diupdate.');
+            $userModel = new UserModel();
+            $data = [
+                'candidate_name' => $this->request->getPost('nama-kandidat'),
+                'candidate_position' => $this->request->getPost('posisi-kandidat'),
+            ];
+            $existingUser = $userModel->find($userId);
+            $imageFile = $this->request->getFile('image');
+            if ($imageFile->isValid()) {
+                if ($existingUser['image'] !== null) {
+                    $oldImagePath = ROOTPATH . '/public/upload/' . $existingUser['image'];
+                    if (file_exists($oldImagePath)) {
+                        unlink($oldImagePath);
+                    }
+                }
+
+                $imageName = $imageFile->getRandomName();
+                $uploadPath = ROOTPATH . '/public/upload';
+                $imageFile->move($uploadPath, $imageName);
+                $data['image'] = $imageName;
+                session()->set('user_image', $imageName);
+            }
+
+            $updated = $userModel->update($userId, $data);
+
+            if ($updated) {
+                session()->set('candidate_position', $this->request->getPost('posisi-kandidat'));
+                session()->set('candidate_name', $this->request->getPost('nama-kandidat'));
+                return redirect()->to(base_url('/user_profile'))->with('success', 'Data berhasil diupdate.');
+            } else {
+                return redirect()->to(base_url('/user_profile'))->with('error', 'Data gagal diupdate.');
+            }
         }
-    }
     }
 
     public function logout()

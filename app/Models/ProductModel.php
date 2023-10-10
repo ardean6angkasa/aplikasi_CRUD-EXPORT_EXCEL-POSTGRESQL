@@ -10,23 +10,23 @@ class ProductModel extends Model
     protected $primaryKey = 'id';
     protected $allowedFields = ['kategori_produk', 'nama_produk', 'harga_beli', 'harga_jual', 'stok_produk', 'image'];
 
-    public function insertProduct($data)
+    public function getData($fetch = null)
     {
-        return $this->insert($data);
-    }
-
-    public function getData($fetch=null)
-    {
-        if ($fetch){
-            return $this->table('product')->like('nama_produk',$fetch)->orLike('kategori_produk',$fetch);
-          }
-        $this->table = 'product';
         $builder = $this->db->table('product');
+        if ($fetch) {
+            $fetch = strtolower($fetch);
+            return $this->table('product')->like('LOWER(nama_produk)', $fetch, 'both')->orLike('LOWER(kategori_produk)', $fetch, 'both');
+        }
         return $builder->get();
     }
 
-    public function countTotalProducts()
+    public function countTotalProducts($fetch = null)
     {
-        return $this->countAll();
+        $builder = $this->db->table('product');
+        if ($fetch) {
+            $fetch = strtolower($fetch);
+            return $this->table('product')->like('LOWER(nama_produk)', $fetch, 'both')->orLike('LOWER(kategori_produk)', $fetch, 'both')->countAllResults();
+        }
+        return $builder->countAllResults();
     }
 }

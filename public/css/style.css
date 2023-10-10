@@ -69,7 +69,6 @@
 .sidebar a:hover {
   background-color: #f75c53;
   color: white;
-  padding: 4px 10px;
 }
 
 .sidebar a.selected {
@@ -202,7 +201,7 @@ a {
   text-decoration: none !important;
 }
 .img-circle-default {
-  margin-left: 280px;
+  margin-left: 190px;
   margin-top: 40px;
   width: 160px;
   height: 160px;
@@ -214,7 +213,7 @@ a {
 }
 
 .img-circle-crop {
-  margin-left: 280px;
+  margin-left: 190px;
   margin-top: 40px;
   width: 160px;
   height: 160px;

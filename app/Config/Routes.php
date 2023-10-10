@@ -19,3 +19,4 @@ $routes->get('/export-excel', 'Home::exportExcel');
 $routes->get('/user_profile', 'Home::user_profile');
 $routes->post('/update_data_candidate', 'Home::update_data_candidate');
 $routes->get('/logout', 'Home::logout');
+$routes->get('/tampilan_segitiga', 'tampilan::tampilan_segitiga');
