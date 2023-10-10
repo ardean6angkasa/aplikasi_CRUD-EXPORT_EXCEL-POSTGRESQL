@@ -52,7 +52,9 @@
     <div class="container">
         <br>
         <br>
-        <h4 style="margin-left: 170px;"><b><span class="text-ccc">Daftar Produk</span>
+        <h4 style="margin-left: 170px;">
+            <b>
+                <span class="text-ccc">Daftar Produk</span>
                 <span style="margin-left: 10px;">></span>
                 <span style="margin-left: 10px;">Tambah Produk</span>
             </b>
