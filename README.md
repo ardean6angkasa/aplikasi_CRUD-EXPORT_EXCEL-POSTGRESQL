@@ -1,6 +1,6 @@
-# aplikasi_THT_web_programmer
-Hasil perancangan aplikasi THT untuk test web programmer.
-Berikut preview dari pengerjaan tersebut.
+# aplikasi_CRUD-EXPORT_EXCELL
+Hasil perancangan aplikasi CRUD + export excell.
+Berikut preview dari aplikasi tersebut.
 
 ![image](https://github.com/reza7angkasa/aplikasi_THT_web_programmer/assets/72240159/771ff808-1541-40af-9595-6cb944ecfd01)
 
